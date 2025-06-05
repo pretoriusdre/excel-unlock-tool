@@ -96,9 +96,13 @@
 
 
       const zip = new JSZip();
-      const arrayBuffer = await selectedFile.arrayBuffer();
-      const zipContent = await zip.loadAsync(arrayBuffer);
-
+      try {
+        arrayBuffer = await selectedFile.arrayBuffer();
+        zipContent = await zip.loadAsync(arrayBuffer);
+      } catch (error) {
+        alert("Sorry, can't process this file. Probably encrypted.");
+        return;
+      }
       const xmlFileNames = Object.keys(zipContent.files).filter(name => name.endsWith('.xml'));
 
       for (const name of xmlFileNames) {
