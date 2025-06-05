@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Microsoft Excel® Password Remover</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- JSZIP library  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+
+
+<body class="bg-light text-dark">
+  <div class="container py-5">
+    <h1 class="mb-4 text-center">🔐 Microsoft Excel® Password Remover</h1>
+
+    <!-- Instructions -->
+    <div class="alert alert-info">
+      <p>This tool removes password protection from Excel (.xlsx) files.</p>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h5>Features</h5>
+      <ul class="mb-0">
+        <li>✅ Completely free and no sign up required</li>
+	      <li>✅ All processing happens locally in your browser</li>
+        <li>✅ Removes workbook protection password</li>
+        <li>✅ Removes sheet protection passwords across all sheets</li>
+        <li>✅ Removes password to modify</li>
+
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h5>Limitations</h5>
+      <ul class="mb-0">
+        <li>❌ Cannot remove password to open (encrypted file)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Warning Section -->
+<div class="alert alert-warning mt-3">
+  <strong>⚠️ Use Responsibly:</strong> This tool is intended for legitimate use only, such as when you have forgotten your own password, or when the original document creator is no longer available (e.g., has left the company). Use of this tool on documents you do not have rights to modify could be illegal or breach workplace policies. Any usage of this tool constitutes acceptance of the <a href="https://github.com/pretoriusdre/excel-unlock-tool/blob/main/LICENSE" target="_blank">MIT License</a>.
+</div>
+
+    <!-- Tool Interface -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-body text-center">
+        <input type="file" id="fileInput" accept=".xlsx,.xlsm,.xltx,.xltm" class="form-control mb-3" />
+        <button id="processButton" class="btn btn-secondary" disabled>🧹 Remove Protection</button>
+        <div id="status" class="text-center text-muted mt-3" style="display: none;">
+          Complete. Check your downloads folder for the unlocked file.</div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <hr class="my-5">
+
+    <!-- Support Section -->
+    <div id="support" class="text-center" style="display: none;">
+      <p>If you found this useful, please consider supporting the project:</p>
+      <a href="https://github.com/pretoriusdre/excel-unlock-tool" target="_blank" class="btn btn-dark">⭐ Star this project on GitHub</a>
+    </div>
+
+
+
+
+
+
+  <script>
+    let selectedFile = null;
+
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+      selectedFile = event.target.files[0];
+      const button = document.getElementById('processButton');
+      const allowedExtensions = ['.xlsx', '.xlsm', '.xltx', '.xltm'];
+      const fileName = selectedFile.name.toLowerCase();
+      const isAllowed = allowedExtensions.some(ext => fileName.endsWith(ext));
+      if (selectedFile && isAllowed) {
+        button.disabled = false;
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-primary');
+      } else {
+        button.disabled = true;
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-secondary');
+        alert('Please select a valid .xlsx file.');
+      }
+    });
+
+    document.getElementById('processButton').addEventListener('click', async function () {
+      if (!selectedFile) return;
+
+
+      const zip = new JSZip();
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const zipContent = await zip.loadAsync(arrayBuffer);
+
+      const xmlFileNames = Object.keys(zipContent.files).filter(name => name.endsWith('.xml'));
+
+      for (const name of xmlFileNames) {
+        const content = await zipContent.files[name].async('string');
+        const regexPattern = /<(?:sheetProtection|workbookProtection|fileSharing).*?\/>/g;
+        const cleanedContent = content.replace(regexPattern, '');
+        zipContent.file(name, cleanedContent);
+      }
+
+      const newZipBlob = await zipContent.generateAsync({ type: 'blob' });
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(newZipBlob);
+      downloadLink.download = selectedFile.name;
+      downloadLink.click();
+
+      document.getElementById('status').style.display = 'block';
+      document.getElementById('support').style.display = 'block';
+
+
+    });
+
+
+  </script>
+
+
+  <!-- 
+  Copyright & License Notices:
+
+  Bootstrap (MIT)
+  (c) 2011-2025 Twitter, Inc.
+  https://getbootstrap.com/
+  Licensed under MIT: https://github.com/twbs/bootstrap/blob/main/LICENSE
+
+  JSZip v3.10.1
+  (c) 2009-2016 Stuart Knightley <stuart@stuartk.com>
+  https://stuk.github.io/jszip/
+  Dual licensed under MIT or GPLv3: https://github.com/Stuk/jszip/blob/main/LICENSE.markdown
+
+  JSZip uses pako, released under the MIT license:
+  https://github.com/nodeca/pako/blob/main/LICENSE
+  -->
+
+
+
+</body>
+</html>
